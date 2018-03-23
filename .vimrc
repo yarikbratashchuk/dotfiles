@@ -2,7 +2,6 @@ call plug#begin()
 Plug 'AndrewRadev/splitjoin.vim'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'SirVer/ultisnips'
-Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
 call plug#end()
 
 syntax on
@@ -11,9 +10,9 @@ let g:go_fmt_command = "goimports"
 let g:go_list_type = "quickfix"
 
 let g:go_decls_includes = "func,type"
-
-let g:go_auto_type_info = 1
 let g:go_auto_sameids = 1
+let g:go_info_mode = 'guru'
+let g:go_auto_type_info = 1
 
 let g:go_highlight_types = 1
 let g:go_highlight_fields = 1
@@ -23,13 +22,24 @@ let g:go_highlight_operators = 1
 let g:go_highlight_extra_types = 1
 let g:go_highlight_build_constraints = 1
 
+set ruler
+set rulerformat=%l,%v
 set autowrite
 set number
 set background=dark
-set updatetime=100
+set updatetime=10
 set lazyredraw
+set hidden
 
-colorscheme PaperColor
+set number relativenumber
+
+colorscheme basic-dark
+
+augroup numbertoggle
+  autocmd!
+  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+augroup END
 
 inoremap jk <ESC>
 map <C-n> :cnext<CR>
@@ -48,7 +58,9 @@ autocmd Filetype go command! -bang A call go#alternate#Switch(<bang>0, 'edit')
 autocmd Filetype go command! -bang AV call go#alternate#Switch(<bang>0, 'vsplit')
 autocmd Filetype go command! -bang AS call go#alternate#Switch(<bang>0, 'split')
 autocmd Filetype go command! -bang AT call go#alternate#Switch(<bang>0, 'tabe')
-autocmd FileType go nmap <Leader>i <Plug>(go-info)
+
+let g:go_highlight_function_arguments = 1
+let g:go_highlight_function_calls = 1
 
 " run :GoBuild or :GoTestCompile based on the go file
 function! s:build_go_files()
@@ -60,4 +72,13 @@ function! s:build_go_files()
   endif
 endfunction
 
+noremap <Tab>j 15j
+noremap <Tab>k 15k
+
 hi Normal guibg=NONE ctermbg=NONE
+
+" js config
+autocmd Filetype javascript setlocal tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
+
+" html config
+autocmd Filetype html setlocal tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
