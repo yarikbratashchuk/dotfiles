@@ -1,44 +1,46 @@
+"lugs {{{
 call plug#begin()
 
-Plug 'junegunn/vader.vim'
-Plug 'chriskempson/base16-vim'
-
-Plug 'Shougo/vimproc.vim'
+Plug 'preservim/nerdtree'
+Plug 'prabirshrestha/async.vim'
+Plug 'prabirshrestha/vim-lsp'
 Plug 'AndrewRadev/splitjoin.vim'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'SirVer/ultisnips'
-Plug 'autozimu/LanguageClient-neovim', {
-			\ 'branch': 'next',
-			\ 'do': 'bash install.sh',
-			\ }
-"Plug 'prabirshrestha/async.vim'
-"Plug 'junegunn/fzf'
-"Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'majutsushi/tagbar'
+"Plug 'vim-syntastic/syntastic'
 
 " C plugins
 Plug 'rhysd/vim-clang-format'
 
 " Go plugins
+Plug 'sebdah/vim-delve'
 Plug 'fatih/vim-go', {
 			\ 'do': ':GoInstallBinaries'
 			\ }
-Plug 'sebdah/vim-delve'
 
 " Rust plugins
-"Plug 'rust-lang/rust.vim'
+Plug 'rust-lang/rust.vim'
+Plug 'arzg/vim-rust-syntax-ext'
+
+" Exercism
+Plug 'junegunn/vader.vim'
+
 call plug#end()
+"}}}
+
+
+" CtrlP config {{{
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_cmd = 'CtrlPMixed'
+let g:ctrlp_working_path_mode = 'ra'
+"}}}
 
 
 " Basic config {{{
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 
-augroup filetype_vim
-	autocmd!
-	autocmd FileType vim setlocal foldmethod=marker
-augroup END
-
-set mouse=
 set rulerformat=%22(%l,%c%V\ %o\ %p%%%)
 set path=./*
 set syntax=on
@@ -54,9 +56,7 @@ set lazyredraw
 set hidden
 set number relativenumber
 set noexpandtab tabstop=8 softtabstop=8 shiftwidth=8
-set textwidth=80 formatoptions-=t formatoptions+=j
-set foldmethod=syntax
-set foldlevel=5
+"set textwidth=80 formatoptions-=t formatoptions+=j
 filetype plugin indent on 
 
 augroup numbertoggle
@@ -70,35 +70,27 @@ map <C-m> :cprevious<CR>
 inoremap jk <ESC>
 nnoremap fo :grep <cword> ./**/*.go<CR>
 nnoremap <leader>a :cclose<CR>
-inoremap <F8> Yarik Bratashchuk <yarik.bratashchuk@gmail.com>
-
-colorscheme basic-dark
-
-hi Normal guibg=NONE ctermbg=NONE
-
-let g:LanguageClient_serverCommands = {
-			\ 'rust': ['~/.cargo/bin/rustup', 'run', 'stable', 'rls'],
-			\ 'go': ['bingo'],
-			\ 'python': ['pyls'],
-			\ }
-
-nnoremap <silent> gr :call LanguageClient#textDocument_references()<CR>
-nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-nnoremap <silent> gR :call LanguageClient#textDocument_rename()<CR>
-"nnoremap fz :call LanguageClient_contextMenu()<CR>
-
-let g:LanguageClient_diagnosticsSignsMax = 0
-let g:LanguageClient_changeThrottle  = 10
-let g:LanguageClient_hoverPreview = "Never"
+nnoremap tt :TagbarToggle<CR><C-w>l
+nnoremap tn :NERDTreeToggle<CR>
 
 nmap U viwU<esc>e
+
+augroup filetype_vim
+	autocmd!
+	autocmd FileType vim setlocal foldmethod=marker
+augroup END
+
+colorscheme basic-dark
+hi Normal guibg=NONE ctermbg=NONE
 "}}}
+
 
 " C code config {{{
 "let g:clang_format#code_style = "google"
 "let g:clang_format#auto_format=1
 "autocmd FileType c,cpp,proto ClangFormat
 " }}}
+
 
 " Go code config {{{
 let g:go_fmt_command = "goimports"
@@ -141,11 +133,32 @@ endfunction
 
 let g:delve_breakpoint_sign = '>>'
 let g:delve_tracepoint_sign = '<<'
+
+if executable('go-langserver')
+	au User lsp_setup call lsp#register_server({
+				\ 'name': 'go-langserver',
+				\ 'cmd': {server_info->['go-langserver', '-gocodecompletion']},
+				\ 'whitelist': ['go'],
+				\ })
+	"autocmd BufWritePre *.go LspDocumentFormatSync
+endif
+
 " }}}
 
+
 " Rust code config {{{
-"let g:rustfmt_autosave = 1
+let g:rustfmt_autosave = 1
+
+if executable('rls')
+	au User lsp_setup call lsp#register_server({
+				\ 'name': 'rls',
+				\ 'cmd': {server_info->['rustup', 'run', 'stable', 'rls']},
+				\ 'workspace_config': {'rust': {'clippy_preference': 'on'}},
+				\ 'whitelist': ['rust'],
+				\ })
+endif
 " }}}
+
 
 " Js/Html code config {{{
 "autocmd Filetype javascript 
@@ -153,6 +166,23 @@ let g:delve_tracepoint_sign = '<<'
 "autocmd Filetype html 
 "	\ setlocal tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
 " }}}
+
+
+" registering lsp {{{
+function! s:on_lsp_buffer_enabled() abort
+	setlocal omnifunc=lsp#complete
+	setlocal signcolumn=yes
+	if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+	nmap <buffer> gd <plug>(lsp-definition)
+	nmap <buffer> <f2> <plug>(lsp-rename)
+endfunction
+
+augroup lsp_install
+	au!
+	autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END
+" }}}
+
 
 " exercism {{{
 function! s:exercism_tests()
@@ -179,23 +209,4 @@ endfunction
 
 autocmd BufRead *.{vader,vim}
 			\ command! -buffer Test call s:exercism_tests()
-" }}}
-
-" wpm {{{
-function! s:wpm() abort
-	if get(b:, 'wpm_start', 0) is 0 
-		let b:wpm_start = [reltime(), wordcount().chars]
-	else
-		let l:time_past = reltimefloat(reltime(b:wpm_start[0]))
-		let l:char_count = wordcount().chars - b:wpm_start[1]
-		unlet b:wpm_start
-		echom printf("WPM: %f", ((l:char_count/l:time_past)*12))
-	endif
-endfunction
-
-augroup wpm
-	autocmd!
-	autocmd InsertEnter * :call s:wpm()
-	autocmd InsertLeave * :call s:wpm()
-augroup end
 " }}}
