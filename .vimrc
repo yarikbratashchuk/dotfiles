@@ -22,6 +22,7 @@ Plug 'fatih/vim-go', {
 " Rust plugins
 Plug 'rust-lang/rust.vim'
 Plug 'arzg/vim-rust-syntax-ext'
+Plug 'racer-rust/vim-racer'
 
 " Exercism
 Plug 'junegunn/vader.vim'
@@ -41,6 +42,30 @@ let g:ctrlp_working_path_mode = 'ra'
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 
+function! GitBranch()
+	return system("git rev-parse --abbrev-ref HEAD 2>/dev/null | tr -d '\n'")
+endfunction
+
+function! StatuslineGit()
+	let l:branchname = GitBranch()
+	return strlen(l:branchname) > 0?'  '.l:branchname.' ':''
+endfunction
+
+set statusline=
+set statusline+=%#PmenuSel#
+set statusline+=%{StatuslineGit()}
+set statusline+=%#LineNr#
+set statusline+=\ %f
+set statusline+=%m\
+set statusline+=%=
+set statusline+=%#CursorColumn#
+set statusline+=\ %y
+set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
+set statusline+=\[%{&fileformat}\]
+set statusline+=\ %p%%
+set statusline+=\ %l:%c
+set statusline+=\
+
 set rulerformat=%22(%l,%c%V\ %o\ %p%%%)
 set path=./*
 set syntax=on
@@ -57,6 +82,8 @@ set hidden
 set number relativenumber
 set noexpandtab tabstop=8 softtabstop=8 shiftwidth=8
 "set textwidth=80 formatoptions-=t formatoptions+=j
+set colorcolumn=101
+set cursorline
 filetype plugin indent on 
 
 augroup numbertoggle
@@ -80,7 +107,9 @@ augroup filetype_vim
 	autocmd FileType vim setlocal foldmethod=marker
 augroup END
 
-colorscheme basic-dark
+set t_Co=256
+colorscheme nnkd
+"colorscheme basic-dark
 hi Normal guibg=NONE ctermbg=NONE
 "}}}
 
@@ -157,6 +186,8 @@ if executable('rls')
 				\ 'whitelist': ['rust'],
 				\ })
 endif
+
+let g:racer_cmd = "/home/user/.cargo/bin/racer"
 " }}}
 
 
