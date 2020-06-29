@@ -1,14 +1,16 @@
-"lugs {{{
+"Plugs {{{
 call plug#begin()
 
 Plug 'preservim/nerdtree'
 Plug 'prabirshrestha/async.vim'
-Plug 'prabirshrestha/vim-lsp'
+Plug 'autozimu/LanguageClient-neovim', {
+			\ 'branch': 'next',
+			\ 'do': 'bash install.sh',
+			\ }
+
 Plug 'AndrewRadev/splitjoin.vim'
 Plug 'ctrlpvim/ctrlp.vim'
-Plug 'SirVer/ultisnips'
 Plug 'majutsushi/tagbar'
-"Plug 'vim-syntastic/syntastic'
 
 " C plugins
 Plug 'rhysd/vim-clang-format'
@@ -76,13 +78,11 @@ set ruler rulerformat=%l,%v smartindent
 set autowrite
 set number
 set background=dark
-set updatetime=10
+set updatetime=1000
 set lazyredraw
 set hidden
 set number relativenumber
 set noexpandtab tabstop=8 softtabstop=8 shiftwidth=8
-"set textwidth=80 formatoptions-=t formatoptions+=j
-set colorcolumn=101
 set cursorline
 filetype plugin indent on 
 
@@ -109,7 +109,6 @@ augroup END
 
 set t_Co=256
 colorscheme nnkd
-"colorscheme basic-dark
 hi Normal guibg=NONE ctermbg=NONE
 "}}}
 
@@ -163,32 +162,14 @@ endfunction
 let g:delve_breakpoint_sign = '>>'
 let g:delve_tracepoint_sign = '<<'
 
-if executable('go-langserver')
-	au User lsp_setup call lsp#register_server({
-				\ 'name': 'go-langserver',
-				\ 'cmd': {server_info->['go-langserver', '-gocodecompletion']},
-				\ 'whitelist': ['go'],
-				\ })
-	"autocmd BufWritePre *.go LspDocumentFormatSync
-endif
-
 " }}}
 
 
 " Rust code config {{{
 let g:rustfmt_autosave = 1
 
-if executable('rls')
-	au User lsp_setup call lsp#register_server({
-				\ 'name': 'rls',
-				\ 'cmd': {server_info->['rustup', 'run', 'stable', 'rls']},
-				\ 'workspace_config': {'rust': {'clippy_preference': 'on'}},
-				\ 'whitelist': ['rust'],
-				\ })
-endif
-
-let g:racer_cmd = "/home/user/.cargo/bin/racer"
-" }}}
+let g:racer_cmd = "/Users/yarik/.cargo/bin/racer"
+"}}}
 
 
 " Js/Html code config {{{
@@ -200,18 +181,13 @@ let g:racer_cmd = "/home/user/.cargo/bin/racer"
 
 
 " registering lsp {{{
-function! s:on_lsp_buffer_enabled() abort
-	setlocal omnifunc=lsp#complete
-	setlocal signcolumn=yes
-	if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
-	nmap <buffer> gd <plug>(lsp-definition)
-	nmap <buffer> <f2> <plug>(lsp-rename)
-endfunction
+let g:LanguageClient_serverCommands = {
+			\ 'rust': ['rust-analyzer'],
+			\ 'python': ['/usr/local/bin/pyls'],
+			\ }
 
-augroup lsp_install
-	au!
-	autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
-augroup END
+nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
+
 " }}}
 
 
