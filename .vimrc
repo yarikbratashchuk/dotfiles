@@ -2,7 +2,13 @@
 call plug#begin()
 
 Plug 'preservim/nerdtree'
+nnoremap tn :NERDTreeToggle<CR>
+
+Plug 'majutsushi/tagbar'
+nnoremap tt :TagbarToggle<CR><C-w>l
+
 Plug 'prabirshrestha/async.vim'
+
 Plug 'autozimu/LanguageClient-neovim', {
 			\ 'branch': 'next',
 			\ 'do': 'bash install.sh',
@@ -10,24 +16,20 @@ Plug 'autozimu/LanguageClient-neovim', {
 
 Plug 'AndrewRadev/splitjoin.vim'
 Plug 'ctrlpvim/ctrlp.vim'
-Plug 'majutsushi/tagbar'
-
-" C plugins
-Plug 'rhysd/vim-clang-format'
+Plug 'SirVer/ultisnips'
 
 " Go plugins
+Plug 'Shougo/vimshell.vim'
+Plug 'Shougo/vimproc.vim'
 Plug 'sebdah/vim-delve'
 Plug 'fatih/vim-go', {
 			\ 'do': ':GoInstallBinaries'
 			\ }
 
 " Rust plugins
-Plug 'rust-lang/rust.vim'
 Plug 'arzg/vim-rust-syntax-ext'
+Plug 'rust-lang/rust.vim'
 Plug 'racer-rust/vim-racer'
-
-" Exercism
-Plug 'junegunn/vader.vim'
 
 call plug#end()
 "}}}
@@ -95,10 +97,7 @@ augroup END
 map <C-n> :cnext<CR>
 map <C-m> :cprevious<CR>
 inoremap jk <ESC>
-nnoremap fo :grep <cword> ./**/*.go<CR>
 nnoremap <leader>a :cclose<CR>
-nnoremap tt :TagbarToggle<CR><C-w>l
-nnoremap tn :NERDTreeToggle<CR>
 
 nmap U viwU<esc>e
 
@@ -111,13 +110,6 @@ set t_Co=256
 colorscheme nnkd
 hi Normal guibg=NONE ctermbg=NONE
 "}}}
-
-
-" C code config {{{
-"let g:clang_format#code_style = "google"
-"let g:clang_format#auto_format=1
-"autocmd FileType c,cpp,proto ClangFormat
-" }}}
 
 
 " Go code config {{{
@@ -162,6 +154,7 @@ endfunction
 let g:delve_breakpoint_sign = '>>'
 let g:delve_tracepoint_sign = '<<'
 
+autocmd FileType go colorscheme basic-dark 
 " }}}
 
 
@@ -172,13 +165,6 @@ let g:racer_cmd = "/Users/yarik/.cargo/bin/racer"
 "}}}
 
 
-" Js/Html code config {{{
-"autocmd Filetype javascript 
-"	\setlocal tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
-"autocmd Filetype html 
-"	\ setlocal tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
-" }}}
-
 
 " registering lsp {{{
 let g:LanguageClient_serverCommands = {
@@ -186,34 +172,5 @@ let g:LanguageClient_serverCommands = {
 			\ 'python': ['/usr/local/bin/pyls'],
 			\ }
 
-nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-
-" }}}
-
-
-" exercism {{{
-function! s:exercism_tests()
-	if expand('%:e') == 'vim'
-		let testfile = printf('%s/%s.vader', expand('%:p:h'),
-					\ tr(expand('%:p:h:t'), '-', '_'))
-		if !filereadable(testfile)
-			echoerr 'File does not exist: '. testfile
-			return
-		endif
-		source %
-		execute 'Vader' testfile
-	else
-		let sourcefile = printf('%s/%s.vim', expand('%:p:h'),
-					\ tr(expand('%:p:h:t'), '-', '_'))
-		if !filereadable(sourcefile)
-			echoerr 'File does not exist: '. sourcefile
-			return
-		endif
-		execute 'source' sourcefile
-		Vader
-	endif
-endfunction
-
-autocmd BufRead *.{vader,vim}
-			\ command! -buffer Test call s:exercism_tests()
+nnoremap <silent> gd :call LanguageClient#textDocument_definition({'gotoCmd': 'vsplit'})<CR>
 " }}}
