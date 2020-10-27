@@ -36,9 +36,15 @@ call plug#end()
 
 
 " CtrlP config {{{
+set wildignore+=*/vendor/*,*/tmp/*,*.so,*.swp,*.zip
+
 let g:ctrlp_map = '<c-p>'
-let g:ctrlp_cmd = 'CtrlPMixed'
+let g:ctrlp_cmd = 'CtrlP'
 let g:ctrlp_working_path_mode = 'ra'
+let g:ctrlp_custom_ignore = {
+			\ 'dir': '\.git$|vendor$\|\.hg$\|\.svn$\|\.yardoc\|public\/images\|public\/system\|data\|log\|tmp$',
+			\ 'file': '\.exe$\|\.so$\|\.dat$'
+			\ }
 "}}}
 
 
@@ -70,6 +76,9 @@ set statusline+=\ %p%%
 set statusline+=\ %l:%c
 set statusline+=\
 
+filetype plugin indent on
+"set ignorecase
+"set smartcase
 set rulerformat=%22(%l,%c%V\ %o\ %p%%%)
 set path=./*
 set syntax=on
@@ -86,7 +95,6 @@ set hidden
 set number relativenumber
 set noexpandtab tabstop=8 softtabstop=8 shiftwidth=8
 set cursorline
-filetype plugin indent on 
 
 augroup numbertoggle
 	autocmd!
@@ -116,8 +124,8 @@ hi Normal guibg=NONE ctermbg=NONE
 let g:go_fmt_command = "goimports"
 let g:go_list_type = "quickfix"
 let g:go_decls_includes = "func,type"
-let g:go_def_mode='godef'
-let g:go_auto_sameids = 1
+"let g:go_def_mode='guru'
+"let g:go_auto_sameids = 1
 let g:go_highlight_types = 1
 let g:go_highlight_fields = 1
 let g:go_highlight_functions = 1
@@ -128,7 +136,7 @@ let g:go_highlight_build_constraints = 1
 let g:go_highlight_function_arguments = 1
 let g:go_highlight_function_calls = 1
 "let g:go_info_mode = 'guru'
-"let g:go_auto_type_info = 1
+let g:go_auto_type_info = 1
 
 nnoremap <silent> <leader>l :<C-u>call go#lint#Golint()<CR>
 nnoremap <silent> <leader>v :<C-u>call go#lint#Vet(!g:go_jump_to_error)<CR>
@@ -154,7 +162,7 @@ endfunction
 let g:delve_breakpoint_sign = '>>'
 let g:delve_tracepoint_sign = '<<'
 
-autocmd FileType go colorscheme basic-dark 
+"autocmd FileType go colorscheme basic-dark
 " }}}
 
 
@@ -172,5 +180,6 @@ let g:LanguageClient_serverCommands = {
 			\ 'python': ['/usr/local/bin/pyls'],
 			\ }
 
-nnoremap <silent> gd :call LanguageClient#textDocument_definition({'gotoCmd': 'vsplit'})<CR>
+"nnoremap <silent> gd :call LanguageClient#textDocument_definition({'gotoCmd': 'split'})<CR>
+nnoremap <silent> sgd :call LanguageClient#textDocument_definition({'gotoCmd': 'vsplit'})<CR>
 " }}}
